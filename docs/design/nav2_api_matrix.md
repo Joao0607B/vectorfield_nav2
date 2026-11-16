@@ -664,7 +664,7 @@ The TB3 loopback wrapper provides `robot_state_publisher` with the TB3 URDF, `ma
 | `publish_clock` defaults to true. Lyrical's launch forces `use_sim_time: True`, so every other node must use sim time. | `lyrical:nav2_loopback_sim/src/loopback_simulator.cpp#L62`, `lyrical:nav2_loopback_sim/launch/loopback_simulation.launch.py#L69` |
 | It integrates `linear.y`, so omni runs on it. | `lyrical:nav2_loopback_sim/src/loopback_simulator.cpp#L344` |
 | It is Python on Jazzy and C++ on Lyrical. | `jazzy:nav2_loopback_sim/nav2_loopback_sim/loopback_simulator.py`, `lyrical:nav2_loopback_sim/src/loopback_simulator.cpp` |
-| `BasicNavigator.waitUntilNav2Active()` defaults to `localizer='amcl'` and hangs without AMCL. **Rule:** tests call `setInitialPose()`, then `waitUntilNav2Active(localizer='controller_server')`. | `nav2_simple_commander/nav2_simple_commander/robot_navigator.py` (R) |
+| `BasicNavigator.waitUntilNav2Active()` defaults to `localizer='amcl'` and hangs without AMCL. It also waits for each `get_state` response without a timeout, so a dropped response (`failed to send response ... (timeout)` in the server's log) hangs it for good. **Rule:** our clients wait with `vectorfield_bringup.lifecycle.wait_until_active` (controller_server for the localizer, then bt_navigator), whose calls time out and are retried; the launch tests' harness does the same. | `nav2_simple_commander/nav2_simple_commander/robot_navigator.py` (R) |
 
 ### 8.3 Command chain per distro
 

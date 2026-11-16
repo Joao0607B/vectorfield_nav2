@@ -2,6 +2,12 @@
 Changelog for package vectorfield_mujoco
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* run_scenario waits for Nav2 and the 3D follower with vectorfield_bringup's
+  lifecycle.wait_until_active, which navigate_waypoints.py now uses as well: a dropped
+  get_state response no longer hangs the waypoint scenarios.
+
 0.6.0 (2026-10-30)
 ------------------
 * mujoco_sim counts its /clock readers as kinematic_sim does: another clock source is no

@@ -43,6 +43,7 @@ import time
 import rclpy
 from rclpy.parameter import Parameter
 from rclpy.signals import SignalHandlerOptions
+from vectorfield_bringup.lifecycle import wait_until_active
 
 from vectorfield_mujoco import examples
 
@@ -114,38 +115,13 @@ class Waiter:
                 break
         return self.node.get_clock().now().nanoseconds * 1e-9
 
-    def wait_active(self, name, deadline):
-        """Return whether lifecycle node ``name`` is active before ``deadline`` (monotonic s)."""
-        from lifecycle_msgs.msg import State
-        from lifecycle_msgs.srv import GetState
-
-        get_state = self.node.create_client(GetState, f'{name}/get_state')
-        try:
-            while time.monotonic() < deadline:
-                if get_state.wait_for_service(timeout_sec=1.0):
-                    future = get_state.call_async(GetState.Request())
-                    rclpy.spin_until_future_complete(self.node, future, timeout_sec=5.0)
-                    result = future.result()
-                    if (
-                        result is not None
-                        and result.current_state.id == State.PRIMARY_STATE_ACTIVE
-                    ):
-                        return True
-                time.sleep(0.5)
-            return False
-        finally:
-            self.node.destroy_client(get_state)
-
     def wait_for_nav2(self, timeout=READY_TIMEOUT):
         """Return whether controller_server and bt_navigator became active within ``timeout``.
 
-        The check of BasicNavigator.waitUntilNav2Active, which waits forever; controller_server
-        stands in for the localizer, which these setups do not have.
+        The check of BasicNavigator.waitUntilNav2Active, with a timeout; controller_server stands
+        in for the localizer, which these setups do not have.
         """
-        deadline = time.monotonic() + timeout
-        return all(
-            self.wait_active(name, deadline) for name in ('controller_server', 'bt_navigator')
-        )
+        return wait_until_active(self.node, ['controller_server', 'bt_navigator'], timeout)
 
     def wait_for_follower(self, timeout=READY_TIMEOUT):
         """Return whether the follow_curve action server appeared within ``timeout`` wall s."""
@@ -169,7 +145,7 @@ class Waiter:
         from vectorfield_msgs.action import FollowCurve3
 
         deadline = time.monotonic() + timeout
-        if not self.wait_active('follower_3d', deadline):
+        if not wait_until_active(self.node, ['follower_3d'], timeout):
             return False
         action = ActionClient(self.node, FollowCurve3, 'follow_curve_3d')
         try:

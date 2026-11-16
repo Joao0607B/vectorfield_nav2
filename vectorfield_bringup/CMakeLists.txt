@@ -87,6 +87,13 @@ if(BUILD_TESTING)
   ament_add_pytest_test(test_field_test test/test_field_test.py
     APPEND_ENV PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYTHON_INSTALL_DIR}
   )
+  # wait_until_active against an in-process get_state service: isolated (a ROS_DOMAIN_ID of its
+  # own), so that it neither hears nor answers a running system.
+  find_package(ament_cmake_ros REQUIRED)
+  ament_add_ros_isolated_pytest_test(test_lifecycle test/test_lifecycle.py
+    APPEND_ENV PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYTHON_INSTALL_DIR}
+    TIMEOUT 120
+  )
 
   find_package(ament_lint_auto REQUIRED)
   list(APPEND AMENT_LINT_AUTO_EXCLUDE

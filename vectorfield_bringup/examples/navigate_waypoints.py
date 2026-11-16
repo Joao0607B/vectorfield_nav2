@@ -42,6 +42,7 @@ import rclpy
 from geometry_msgs.msg import PoseStamped
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 from rclpy.signals import SignalHandlerOptions
+from vectorfield_bringup.lifecycle import wait_until_active
 
 DEFAULT_POSES = '2.5,0,0 2.5,2.5,1.57 -2.5,2.5,3.14 0,0,0'
 
@@ -74,8 +75,8 @@ def parse_arguments(argv):
     parser.add_argument(
         '--localizer',
         default='controller_server',
-        help='node to wait for before the first goal: amcl with AMCL, controller_server '
-        '(default) when the setup has no localizer node',
+        help='node to wait for before the first goal: amcl with AMCL (localize the robot '
+        'first), controller_server (default) when the setup has no localizer node',
     )
     return parser.parse_args(argv)
 
@@ -142,7 +143,10 @@ def main():
     navigator = BasicNavigator('navigate_waypoints')
     code = 0
     try:
-        navigator.waitUntilNav2Active(localizer=args.localizer)
+        # What BasicNavigator.waitUntilNav2Active checks, with a timeout on each get_state call
+        # (it waits forever for a dropped response), and without publishing an initial pose.
+        localizer = [] if args.localizer == 'robot_localization' else [args.localizer]
+        wait_until_active(navigator, localizer + ['bt_navigator'])
         if args.relative:
             origin = start_pose(navigator, args.frame, args.base_frame)
             if origin is None:

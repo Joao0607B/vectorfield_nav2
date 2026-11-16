@@ -2,6 +2,14 @@
 Changelog for package vectorfield_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* navigate_waypoints.py and send_curve.py wait for Nav2 with lifecycle.wait_until_active, whose
+  get_state calls time out and are retried, instead of BasicNavigator.waitUntilNav2Active,
+  which waits forever for a dropped response (seen on a loaded CI runner).
+  navigate_waypoints.py --localizer amcl no longer publishes an initial pose at the origin
+  first, as BasicNavigator did: localize the robot before the first goal.
+
 0.6.0 (2026-10-30)
 ------------------
 * loopback_demo starts the simulator side of nav2_bringup's TB3 loopback wrapper itself

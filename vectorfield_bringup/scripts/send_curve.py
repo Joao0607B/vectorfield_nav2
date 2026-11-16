@@ -51,6 +51,7 @@ from rclpy.qos import qos_profile_action_status_default
 from rclpy.signals import SignalHandlerOptions
 from rclpy.time import Time
 from tf2_ros import Buffer, TransformException, TransformListener
+from vectorfield_bringup.lifecycle import wait_until_active
 
 from vectorfield_bringup import curves
 from vectorfield_msgs.action import FollowCurve
@@ -218,7 +219,7 @@ def approach(description, frame, args, client, log):
     try:
         # bt_navigator rejects goals until it is active; controller_server stands in for the
         # localizer, which differs between setups.
-        navigator.waitUntilNav2Active(localizer='controller_server')
+        wait_until_active(navigator, ['controller_server', 'bt_navigator'])
         navigator.goToPose(pose)
         while not navigator.isTaskComplete():
             time.sleep(0.1)
