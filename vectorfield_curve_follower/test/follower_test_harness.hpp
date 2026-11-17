@@ -522,6 +522,10 @@ protected:
       follower_->deactivate();
     }
     if (spinner_.joinable()) {
+      // A cancel() before the thread has entered spin() is lost and spin() never returns.
+      while (!executor_.is_spinning() && rclcpp::ok()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      }
       executor_.cancel();
       spinner_.join();
     }

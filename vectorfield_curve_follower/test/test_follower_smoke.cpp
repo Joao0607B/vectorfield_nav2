@@ -200,6 +200,10 @@ protected:
   {
     stop_ = true;
     simulator_.join();
+    // A cancel() before the thread has entered spin() is lost and spin() never returns.
+    while (!executor_.is_spinning() && rclcpp::ok()) {
+      std::this_thread::sleep_for(1ms);
+    }
     executor_.cancel();
     spinner_.join();
     client_.reset();
